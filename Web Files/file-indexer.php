@@ -10,7 +10,7 @@ function indexDirectory( $dir, &$fileList )
 
 		if ( is_dir($dir . '/' . $file) )
 		{
-			indexDirectory($dir . '/' . $file, &$fileList );
+			indexDirectory($dir . '/' . $file, $fileList );
 		}
 		else
 		{

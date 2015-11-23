@@ -1,3 +1,4 @@
-## 0.1.0 (22-11-2015 GMT)
+## 0.1.0.1 (23-11-2015 GMT)
 
-Initial release.
+* Added multi directory support.
+* Fixed bug when checking files for updates.

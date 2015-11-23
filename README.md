@@ -18,6 +18,10 @@ It was coded in Microsoft Virtual Studio.
 6. Compile and deploy.
 7. You should probably as a minimum rename the file-indexer.php file or in some way lock it down to avoid malicious users from running it.
 
+## 0.1.0.1 (23-11-2015 GMT)
+* Added multi directory support.
+* Fixed bug when checking files for updates.
+
 ## Support / Feedback / Issues
 If you need help, have feedback, requests or like, please visit [The Forums](https://www.sirmre.com/forums/).   
 When it comes to code help, I won't just code stuff for you - try yourself first, show me you made an effort and I'll be happy to assist to the best of my ability. Please note I am doing this is my spare time and I am quite busy so don't expect anything.

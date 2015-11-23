@@ -70,7 +70,11 @@ namespace Supremacy_Launcher_v2
         /// <summary>
         /// This is the name of the mod directory which the launcher will check against. MUST BEGIN WITH @
         /// </summary>
-        private string _modDirName = "@supremacy";
+        private List<string> _modDirName = new List<string>(new string[] {
+            "@mod-dir-1",
+            "@mod-dir-2",
+            "@mod-dir-3"
+        });
 
         /// <summary>
         /// The hostname or IP address of your arma 3 server
@@ -152,10 +156,19 @@ namespace Supremacy_Launcher_v2
             // Check if the mod is installed
             if (_arma3Path != "")
             {
-                if (Directory.Exists(_arma3Path + "\\" + _modDirName))
+                _isInstalled = true;
+
+                foreach (string dn in _modDirName)
+                {
+                    if (!Directory.Exists(_arma3Path + "\\" + dn))
+                    {
+                        _isInstalled = false;
+                    }
+                }
+
+                if(_isInstalled)
                 {
                     btnDownloadInstall.BackgroundImage = Properties.Resources.btnUpdatemod_disabled;
-                    _isInstalled = true;
                 }
 
                 initThreadsStarted = true;
@@ -265,7 +278,7 @@ namespace Supremacy_Launcher_v2
                 else
                 {
                     // update the status bar
-                    updateStatusBar(_modDirName + " is to date!", 100);
+                    updateStatusBar("Mod is to date!", 100);
                     btnPlay.BackgroundImage = Properties.Resources.launcher_btnPlay;
                     btnPlay.Enabled = true;
                     btnPlay.Cursor = Cursors.Hand;
@@ -470,88 +483,93 @@ namespace Supremacy_Launcher_v2
 
         private void initPatchCheck()
         {
-            if (Directory.Exists(_arma3Path + "\\" + _modDirName))
+            foreach (string dn in _modDirName)
             {
-                _isInstalled = true;
-            }
-
-            // update the status text
-            updateStatusBar("Checking files for updates..", 0);
-
-            // check if there are any patches available. Will return the download url.
-            string jsonData = new WebClient().DownloadString(_patchURL).ToString();
-
-            if (jsonData != "")
-            {
-                try
+                if (!Directory.Exists(_arma3Path + "\\" + dn))
                 {
-                    dynamic fileData = JsonConvert.DeserializeObject(jsonData);
-                    int filesTotal = fileData.Count;
-                    int i = 1;
-
-                    List<string> existingFiles = new List<string>();
-                    List<string> patchingFiles = new List<string>();
-                    
-                    if (Directory.Exists(_arma3Path + "\\y" + _modDirName))
-                    {
-                        foreach (var item in Directory.GetFiles(_arma3Path + "\\" + _modDirName, "*", SearchOption.AllDirectories))
-                        {
-                            existingFiles.Add((string)item);
-                        }
-                    }
-
-                    foreach (var item in fileData)
-                    {
-                        string filehash = "";
-                        string winPath = ((string)item.path).Replace("/", "\\");
-                        string directoryPath = winPath.Replace((string)item.name, "");
-
-                        if (winPath == "")
-                        {
-                            continue;
-                        }
-
-                        patchingFiles.Add(_arma3Path + winPath);
-
-                        if (_arma3Path != "" && !Directory.Exists(_arma3Path + directoryPath))
-                        {
-                            Directory.CreateDirectory(_arma3Path + directoryPath);
-                        }
-
-                        if (File.Exists(_arma3Path + winPath))
-                        {
-                            using (FileStream stream = File.OpenRead(_arma3Path + winPath))
-                            {
-                                SHA1Managed sha = new SHA1Managed();
-                                byte[] hash = sha.ComputeHash(stream);
-                                filehash = BitConverter.ToString(hash).Replace("-", String.Empty).ToLower();
-                            }
-                        }
-
-                        if ((string)filehash.ToLower() != ((string)item.sha1).ToLower())
-                        {
-                            _updatedFiles.Add((string)item.path);
-                        }
-
-                        updateStatusBar("Checking files for updates..", (100 / filesTotal) * i);
-                        i++;
-                    }
-
-                    string[] fileArray = existingFiles.ToArray();
-                    string[] patchArray = patchingFiles.ToArray();
-
-                    if (existingFiles.Count() > 0)
-                    {
-                        foreach (string file in fileArray)
-                        {
-                            if (!patchArray.Contains(file))
-                            {
-                                File.Delete(file);
-                            }
-                        }
-                    }
+                    _isInstalled = false;
                 }
-                catch (Exception err) { };
+
+                // update the status text
+                updateStatusBar("Checking files for updates..", 0);
+
+                // check if there are any patches available. Will return the download url.
+                string jsonData = new WebClient().DownloadString(_patchURL).ToString();
+
+                if (jsonData != "")
+                {
+                    try
+                    {
+                        dynamic fileData = JsonConvert.DeserializeObject(jsonData);
+                        int filesTotal = fileData.Count;
+                        int i = 1;
+
+                        List<string> existingFiles = new List<string>();
+                        List<string> patchingFiles = new List<string>();
+
+                        if (Directory.Exists(_arma3Path + "\\" + dn))
+                        {
+                            foreach (var item in Directory.GetFiles(_arma3Path + "\\" + dn, "*", SearchOption.AllDirectories))
+                            {
+                                existingFiles.Add((string)item);
+                            }
+                        }
+
+                        foreach (var item in fileData)
+                        {
+                            string filehash = "";
+                            string winPath = ((string)item.path).Replace("/", "\\");
+                            string directoryPath = winPath.Replace((string)item.name, "");
+
+                            if (winPath == "")
+                            {
+                                continue;
+                            }
+
+                            patchingFiles.Add(_arma3Path + winPath);
+
+                            if (_arma3Path != "" && !Directory.Exists(_arma3Path + directoryPath))
+                            {
+                                Directory.CreateDirectory(_arma3Path + directoryPath);
+                            }
+
+                            if (File.Exists(_arma3Path + winPath))
+                            {
+                                using (FileStream stream = File.OpenRead(_arma3Path + winPath))
+                                {
+                                    SHA1Managed sha = new SHA1Managed();
+                                    byte[] hash = sha.ComputeHash(stream);
+                                    filehash = BitConverter.ToString(hash).Replace("-", String.Empty).ToLower();
+                                }
+                            }
+
+                            if ((string)filehash.ToLower() != ((string)item.sha1).ToLower())
+                            {
+                                _updatedFiles.Add((string)item.path);
+                            }
+
+                            updateStatusBar("Checking " + dn + " directory for updates..", (100 / filesTotal) * i);
+                            i++;
+                        }
+
+                        string[] fileArray = existingFiles.ToArray();
+                        string[] patchArray = patchingFiles.ToArray();
+
+                        if (existingFiles.Count() > 0)
+                        {
+                            foreach (string fn in fileArray)
+                            {
+                                if (!patchArray.Contains(fn))
+                                {
+                                    File.Delete(fn);
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception err) {
+
+                    };
+                }
             }
 
             // Unlock the UI elements.
@@ -648,7 +666,7 @@ namespace Supremacy_Launcher_v2
         {
             Process p = new Process();
             p.StartInfo.FileName = _arma3Path + "\\arma3.exe";
-            p.StartInfo.Arguments = "\"-mod=" + _modDirName + "\" -nosplash -noLogs -world=empty -connect=" + _gameServerAddress + " - port=" + _gameServerPort;
+            p.StartInfo.Arguments = "\"-mod=" + string.Join(";", _modDirName) + "\" -nosplash -noLogs -world=empty -connect=" + _gameServerAddress + " - port=" + _gameServerPort;
             p.Start();
         }
     }
